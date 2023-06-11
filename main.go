@@ -36,6 +36,10 @@ func configHandler(platform string) bool {
 
 func uploadHandler(args []string) bool {
 	if strings.ToLower(args[2]) == "aws" {
+		if len(args) != 7 {
+			fmt.Println("Usage: file-storage upload aws <REGION> <BUCKET_NAME> <FILE_PATH> <FILE_KEY>")
+			return false
+		}
 		return aws_upload(args[3], args[4], args[5], args[6])
 	}
 	return false
