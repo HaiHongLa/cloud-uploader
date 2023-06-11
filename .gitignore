@@ -1,0 +1,5 @@
+cloudConfig/*
+cloudConfig
+*.csv
+*.txt
+*.exe
