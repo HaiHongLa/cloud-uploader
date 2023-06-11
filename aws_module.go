@@ -13,7 +13,49 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func aws_config() bool{
+func getAWSS3Client(region string) (*s3.S3, error) {
+	configFile, err := os.Open("cloudConfig/AWSConfig")
+	if err != nil {
+		return nil, fmt.Errorf("AWS Configuration not found. Configure your AWS S3 credentials by running: file-storage configure aws. Error: %v", err)
+	}
+	defer configFile.Close()
+
+	scanner := bufio.NewScanner(configFile)
+	keys := map[string]string{}
+	for scanner.Scan() {
+		line := scanner.Text()
+		pair := strings.Split(line, "=")
+		if len(pair) != 2 {
+			continue
+		}
+		keys[pair[0]] = pair[1]
+	}
+	if keys["AWS_ACCESS_KEY"] == "" {
+		return nil, fmt.Errorf("AWS access key is missing. Please run: file-storage configure aws")
+	}
+	if keys["AWS_SECRET_ACCESS_KEY"] == "" {
+		return nil, fmt.Errorf("Secret access key is missing. Please run: file-storage configure aws")
+	}
+
+	accessKey := keys["AWS_ACCESS_KEY"]
+	secretAccessKey := keys["AWS_SECRET_ACCESS_KEY"]
+
+	// Create an AWS session with the provided credentials
+	sess := session.Must(session.NewSession(&aws.Config{
+		Region: aws.String(region),
+		Credentials: credentials.NewStaticCredentials(
+			accessKey,
+			secretAccessKey,
+			""),
+	}))
+
+	// Create an S3 client
+	svc := s3.New(sess)
+
+	return svc, nil
+}
+
+func configureAWSS3() bool{
 	fmt.Println("Enter Access Key: ")
 	var accessKey string
 	fmt.Scanln(&accessKey)
@@ -43,48 +85,15 @@ func aws_config() bool{
 	return true
 }
 
-func aws_upload(region string, bucketName string, filePath string, fileKey string) bool {
-	configFile, err := os.Open("cloudConfig/AWSConfig")
+func uploadToAWSS3Bucket(region string, bucketName string, filePath string, fileKey string) bool {
+	svc, err := getAWSS3Client(region)
 	if err != nil {
-		fmt.Println("AWS Configuration not found\nConfigure your AWS S3 credentials by running: file-storage configure aws", err)
+		fmt.Println("Failed to authenticate: ", err)
 		return false
 	}
-	defer configFile.Close()
-	scanner := bufio.NewScanner(configFile)
-	keys := map[string]string{}
-	for scanner.Scan() {
-		line := scanner.Text()
-		pair := strings.Split(line, "=")
-		if len(pair) != 2 {
-			continue
-		}
-		keys[pair[0]] = pair[1]
-	}
-	if keys["AWS_ACCESS_KEY"] == "" {
-		fmt.Println("AWS access key is missing. Please run: file-storage configure aws")
-		return false
-	}
-	if keys["AWS_SECRET_ACCESS_KEY"] == "" {
-		fmt.Println("Secret access key is missing. Please run: file-storage configure aws")
-		return false
-	}
-
-	accessKey := keys["AWS_ACCESS_KEY"]
-	secretAccessKey := keys["AWS_SECRET_ACCESS_KEY"]
-
-	// Upload the file
-	sess := session.Must(session.NewSession(&aws.Config{
-		Region: aws.String(region),
-		Credentials: credentials.NewStaticCredentials(
-			accessKey, 
-			secretAccessKey, 
-			""),
-	}))
-	svc := s3.New(sess)
-
 	file, err := os.Open(filePath)
 	if err != nil {
-		fmt.Println("Failed to open file", err)
+		fmt.Println("Failed to open local file", err)
 		return false
 	}
 	defer file.Close()
@@ -100,5 +109,24 @@ func aws_upload(region string, bucketName string, filePath string, fileKey strin
 	}
 
 	fmt.Println("File uploaded successfully")
+	return true
+}
+
+func listAllFilesFromAWSS3Bucket(region string, bucketName string) bool {
+	svc, err := getAWSS3Client(region)
+	if err != nil {
+		fmt.Println("Failed to authenticate: ", err)
+		return false
+	}
+	result, err := svc.ListObjectsV2(&s3.ListObjectsV2Input{
+		Bucket: aws.String(bucketName),
+	})
+	if err != nil {
+		fmt.Println("Failed to list objects: ", err)
+		return false
+	}
+	for _, obj := range result.Contents {
+		fmt.Println(*obj.Key)
+	}
 	return true
 }

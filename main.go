@@ -8,7 +8,6 @@ import (
 
 func main() {
 	args := os.Args
-	fmt.Println(args)
 	if len(args) <= 1 {
 		fmt.Println("Usage: configure")
 		return
@@ -20,27 +19,47 @@ func main() {
 	} else if args[1] == "upload" {
 		if !uploadHandler(args) {
 			fmt.Println("An error occured when uploading")
+			return
 		}
+		return
+	} else if args[1] == "ls" {
+		if !lsHandler(args) {
+			fmt.Println("An error occured when trying to list files")
+			return
+		}
+		return
 	}
 
-	fmt.Println("Usage: configure")
+	fmt.Println("Command not supported")
 	return
 }
 
 func configHandler(platform string) bool {
 	if strings.ToLower(platform) == "aws" {
-		return aws_config()
+		return configureAWSS3()
 	}
 	return false
 }
 
 func uploadHandler(args []string) bool {
+	fmt.Println(args)
 	if strings.ToLower(args[2]) == "aws" {
 		if len(args) != 7 {
 			fmt.Println("Usage: file-storage upload aws <REGION> <BUCKET_NAME> <FILE_PATH> <FILE_KEY>")
 			return false
 		}
-		return aws_upload(args[3], args[4], args[5], args[6])
+		return uploadToAWSS3Bucket(args[3], args[4], args[5], args[6])
+	}
+	return false
+}
+
+func lsHandler(args []string) bool {
+	if strings.ToLower(args[2]) == "aws" {
+		if len(args) != 5 {
+			fmt.Println("Usage: file-storage ls aws <REGION> <BUCKET_NAME>")
+			return false
+		}
+		return listAllFilesFromAWSS3Bucket(args[3], args[4])
 	}
 	return false
 }
