@@ -1,2 +1,5 @@
 build:
-	go build -o file-storage
+	go build -o file-storage.exe
+
+get-dependency:
+	go mod download

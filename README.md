@@ -1,4 +1,4 @@
-# File Storage CLI Tool
+# Cloud Storage CLI Tool
 
 The File Storage CLI Tool is a command-line interface that allows users to configure AWS S3 credentials and perform various operations such as uploading, listing, and deleting files in an S3 bucket.
 
