@@ -9,7 +9,7 @@ import (
 func main() {
 	args := os.Args
 	if len(args) <= 1 {
-		fmt.Println("Usage: configure")
+		fmt.Println("For instructions run: file-storage help")
 		return
 	} else if args[1] == "configure" {
 		if !configHandler(args[2]) {
@@ -28,8 +28,13 @@ func main() {
 			return
 		}
 		return
+	} else if args[1] == "delete" {
+		if !deleteHandler(args) {
+			fmt.Println("An error occured when trying to delete file")
+			return
+		}
+		return
 	}
-
 	fmt.Println("Command not supported")
 	return
 }
@@ -60,6 +65,17 @@ func lsHandler(args []string) bool {
 			return false
 		}
 		return listAllFilesFromAWSS3Bucket(args[3], args[4])
+	}
+	return false
+}
+
+func deleteHandler(args []string) bool {
+	if strings.ToLower(args[2]) == "aws" {
+		if len(args) != 6 {
+			fmt.Println("Usage: file-storage delete aws <REGION> <BUCKET_NAME> <FILE_KEY>")
+			return false
+		}
+		return deleteFromS3Bucket(args[3], args[4], args[5])
 	}
 	return false
 }

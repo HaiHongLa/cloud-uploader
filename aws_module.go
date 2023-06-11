@@ -130,3 +130,24 @@ func listAllFilesFromAWSS3Bucket(region string, bucketName string) bool {
 	}
 	return true
 }
+
+func deleteFromS3Bucket(region string, bucketName string, fileKey string) bool {
+	svc, err := getAWSS3Client(region)
+	if err != nil {
+		fmt.Println("Failed to authenticate: ", err)
+		return false
+	}
+	input := &s3.DeleteObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(fileKey),
+	}
+
+	// Delete the file from S3
+	_, err = svc.DeleteObject(input)
+	if err != nil {
+		fmt.Println("Failed to delete file from S3: ", err)
+		return false
+	}
+	fmt.Println("Deleted file " + fileKey + " successfully")
+	return true
+}
