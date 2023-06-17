@@ -16,6 +16,7 @@ func main() {
 			fmt.Println("An error occured when configuring AWS credentials")
 			return
 		}
+		return
 	} else if args[1] == "upload" {
 		if !uploadHandler(args) {
 			fmt.Println("An error occured when uploading")
@@ -42,18 +43,25 @@ func main() {
 func configHandler(platform string) bool {
 	if strings.ToLower(platform) == "aws" {
 		return configureAWSS3()
+	} else if strings.ToLower(platform) == "azure" {
+		return configureAzureBlobStorage()
 	}
 	return false
 }
 
 func uploadHandler(args []string) bool {
-	fmt.Println(args)
 	if strings.ToLower(args[2]) == "aws" {
 		if len(args) != 7 {
 			fmt.Println("Usage: file-storage upload aws <REGION> <BUCKET_NAME> <FILE_PATH> <FILE_KEY>")
 			return false
 		}
 		return uploadToAWSS3Bucket(args[3], args[4], args[5], args[6])
+	} else if strings.ToLower(args[2]) == "azure" {
+		if len(args) != 6 {
+			fmt.Println("Usage: file-storage upload azure <CONTAINER_NAME> <FILE_PATH> <BLOB_NAME>")
+			return false
+		}
+		return uploadToAzureBlobStorage(args[3], args[4], args[5])
 	}
 	return false
 }
