@@ -13,25 +13,31 @@ func main() {
 		return
 	} else if args[1] == "configure" {
 		if !configHandler(args[2]) {
-			fmt.Println("An error occured when configuring AWS credentials")
+			fmt.Println("An error occurred when configuring AWS credentials")
 			return
 		}
 		return
 	} else if args[1] == "upload" {
 		if !uploadHandler(args) {
-			fmt.Println("An error occured when uploading")
+			fmt.Println("An error occurred when uploading")
 			return
 		}
 		return
 	} else if args[1] == "ls" {
 		if !lsHandler(args) {
-			fmt.Println("An error occured when trying to list files")
+			fmt.Println("An error occurred when trying to list files")
 			return
 		}
 		return
 	} else if args[1] == "delete" {
 		if !deleteHandler(args) {
-			fmt.Println("An error occured when trying to delete file")
+			fmt.Println("An error occurred when trying to delete file")
+			return
+		}
+		return
+	} else if args[1] == "get" {
+		if !getHandler(args) {
+			fmt.Println("An error occurrded when retrieving file")
 			return
 		}
 		return
@@ -95,6 +101,16 @@ func deleteHandler(args []string) bool {
 			fmt.Println("Usage: file-storage delete azure <CONTAINER_NAME> <BLOB_NAME>")
 		}
 		return deleteBlobFromContainer(args[3], args[4])
+	}
+	return false
+}
+
+func getHandler(args[]string) bool {
+	if strings.ToLower(args[2]) == "aws" {
+		if len(args) != 7 {
+			fmt.Println("USAGE: file-storage get aws <REGION> <BUCKET_NAME> <FILE_KEY> <FILE_PATH>")
+		}
+		return getFileFromS3(args[3], args[4], args[5], args[6])
 	}
 	return false
 }

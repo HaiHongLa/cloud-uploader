@@ -6,14 +6,17 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"path/filepath"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+
 )
 
-func getAWSS3Client(region string) (*s3.S3, error) {
+func getAWSS3Session(region string) (*session.Session, error) {
 	configFile, err := os.Open("cloudConfig/AWSConfig")
 	if err != nil {
 		return nil, fmt.Errorf("AWS Configuration not found. Configure your AWS S3 credentials by running: file-storage configure aws. Error: %v", err)
@@ -48,10 +51,15 @@ func getAWSS3Client(region string) (*s3.S3, error) {
 			secretAccessKey,
 			""),
 	}))
+	return sess, nil
+}
 
-	// Create an S3 client
+func getAWSS3Client(region string) (*s3.S3, error) {
+	sess, err := getAWSS3Session(region)
+	if err != nil {
+		return nil, fmt.Errorf("Error creating AWS S3 session: %v", err)
+	} 
 	svc := s3.New(sess)
-
 	return svc, nil
 }
 
@@ -149,5 +157,38 @@ func deleteFromS3Bucket(region string, bucketName string, fileKey string) bool {
 		return false
 	}
 	fmt.Println("Deleted file " + fileKey + " successfully")
+	return true
+}
+
+func getFileFromS3(region string, bucketName string, fileKey string, filePath string) bool {
+	sess, err := getAWSS3Session(region)
+	if err != nil {
+		fmt.Printf("Error creating AWS S3 session: %v\n", err)
+		return false
+	} 
+	downloader := s3manager.NewDownloader(sess)
+	dirPath := filepath.Dir(filePath)
+	err = os.MkdirAll(dirPath, 0755)
+	if err != nil {
+		fmt.Println("Failed to create directory:", err)
+		return false
+	}
+	file, err := os.Create(filePath)
+	if err != nil {
+		fmt.Println("Failed to create file:", err)
+		return false
+	}
+	defer file.Close()
+
+	_, err = downloader.Download(file, &s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(fileKey),
+	})
+	if err != nil {
+		fmt.Println("Failed to download file:", err)
+		return false
+	}
+
+	fmt.Println("File downloaded successfully!")
 	return true
 }
