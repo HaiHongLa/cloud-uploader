@@ -1,12 +1,12 @@
 # Cloud Storage CLI Tool
 
-The File Storage CLI Tool is a command-line interface that allows users to configure AWS S3 credentials and perform various operations such as uploading, listing, and deleting files in an S3 bucket.
+The File Storage CLI Tool is a command-line interface that allows users to configure credentials and perform various operations such as downloading, uploading, listing, and deleting files in AWS S3 buckets or Microsoft Azure Blob Storage containers.
 
+- [For AWS S3](#aws-s3)
+- [For Microsoft Azure Blob Storage](#microsoft-azure-blob-storage)
 ## Prerequisites
 
-- Go programming language (version 1.16 or later)
-- AWS CLI installed and configured with appropriate access credentials
-- S3 bucket created in your AWS account
+- Go 1.16 or later
 
 ## Installation
 
@@ -26,6 +26,7 @@ make build
 For Windows users, instead of `make build`, run `build.bat`.
 
 ## Usage
+## For AWS S3
 ### Configure AWS Credentials
 To configure AWS credentials, run the following command:
 ```bash
@@ -52,3 +53,47 @@ To delete a file from an S3 bucket, use the following command:
 file-storage delete aws <REGION> <BUCKET_NAME> <FILE_KEY>
 ```
 Replace `<REGION>` with the AWS region, `<BUCKET_NAME>` with the name of your S3 bucket, and `<FILE_KEY>` with the object key of the file you want to delete.
+### Get a File from S3 Bucket to Local Machine
+To download a file from an S3 bucket to your local machine, use the following command:
+```bash
+file-storage get aws <REGION> <BUCKET_NAME> <FILE_KEY> <FILE_PATH>
+```
+Replace `<REGION>` with the desired AWS region, `<BUCKET_NAME>` with the name of your S3 bucket, `<FILE_KEY>` with the object key of the file you want to download, and `<FILE_PATH>` with the local path where you want to save the downloaded file.
+## For Microsoft Azure Blob Storage
+### Configure Azure Credentials
+To configure Azure credentials, run the following command:  
+```bash
+file-storage configure azure
+```
+This command will prompt you to enter your Azure Storage account name and access key. These credentials will be used for subsequent Azure Blob Storage operations.  
+### Upload a File to Azure Blob Storage
+To upload a file to an Azure Blob Storage container, use the following command:
+```bash
+file-storage upload azure <CONTAINER_NAME> <FILE_PATH> <BLOB_NAME>
+```
+Replace `<CONTAINER_NAME>` with the name of your Azure Blob Storage container, `<FILE_PATH>` with the local path to the file you want to upload, and `<BLOB_NAME>` with the desired blob name for the uploaded file.
+
+### List Files in an Azure Blob Storage Container
+To list all files in an Azure Blob Storage container, execute the following command:
+```bash
+file-storage ls azure <CONTAINER_NAME>
+```
+Replace `<CONTAINER_NAME>` with the name of your Azure Blob Storage container.
+
+### Delete a Blob from an Azure Blob Storage Container
+To delete a blob from an Azure Blob Storage container, use the following command:
+```bash
+file-storage delete azure <CONTAINER_NAME> <BLOB_NAME>
+```
+Replace `<CONTAINER_NAME>` with the name of your Azure Blob Storage container and `<BLOB_NAME>` with the name of the blob you want to delete.
+
+### Get a Blob from an Azure Blob Storage Container to Local Machine
+To download a blob from an Azure Blob Storage container to your local machine, use the following command:
+```bash
+file-storage get azure <CONTAINER_NAME> <BLOB_NAME> <FILE_PATH>
+```
+Replace `<CONTAINER_NAME>` with the name of your Azure Blob Storage container, `<BLOB_NAME>` with the name of the blob you want to download, and `<FILE_PATH>` with the local path where you want to save the downloaded file.
+
+Remember to replace `<CONTAINER_NAME>`, `<BLOB_NAME>`, and `<FILE_PATH>` with the actual names and paths specific to your scenario.
+
+With these commands, you can manage your Azure Blob Storage containers and perform operations such as uploading, listing, deleting, and downloading files.
