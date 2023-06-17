@@ -73,6 +73,12 @@ func lsHandler(args []string) bool {
 			return false
 		}
 		return listAllFilesFromAWSS3Bucket(args[3], args[4])
+	} else if strings.ToLower(args[2]) == "azure" {
+		if len(args) != 4 {
+			fmt.Println("Usage: file-storage ls azure <CONTAINER_NAME>")
+			return false
+		}
+		return listAllFilesFromBlobContainer(args[3])
 	}
 	return false
 }
@@ -84,6 +90,11 @@ func deleteHandler(args []string) bool {
 			return false
 		}
 		return deleteFromS3Bucket(args[3], args[4], args[5])
+	} else if strings.ToLower(args[2]) == "azure" {
+		if len(args) != 5 {
+			fmt.Println("Usage: file-storage delete azure <CONTAINER_NAME> <BLOB_NAME>")
+		}
+		return deleteBlobFromContainer(args[3], args[4])
 	}
 	return false
 }

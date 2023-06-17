@@ -124,3 +124,46 @@ func uploadToAzureBlobStorage(containerName string, filePath string, blobName st
 	fmt.Printf("Upload completed with status code: %d\n", uploadResponse.Response().StatusCode)
 	return true
 }
+
+func listAllFilesFromBlobContainer(containerName string) bool {
+	serviceURL, err := createServiceURL()
+	if err != nil {
+		fmt.Println("Failed to create service URL", err)
+		return false
+	}
+	containerURL := serviceURL.NewContainerURL(containerName)
+	for marker := (azblob.Marker{}); marker.NotDone(); {
+		listBlob, err := containerURL.ListBlobsFlatSegment(context.TODO(), marker, azblob.ListBlobsSegmentOptions{})
+		if err != nil {
+			fmt.Println("Error: Cannot list blobs")
+			return false
+		}
+
+		// Process each blob in the segment
+		for _, blobInfo := range listBlob.Segment.BlobItems {
+			fmt.Println(blobInfo.Name)
+		}
+
+		// Update the marker to retrieve the next segment of blobs
+		marker = listBlob.NextMarker
+	}
+	return true
+}
+
+func deleteBlobFromContainer(containerName string, blobName string) bool {
+	serviceURL, err := createServiceURL()
+	if err != nil {
+		fmt.Println("Failed to create service URL", err)
+		return false
+	}
+	containerURL := serviceURL.NewContainerURL(containerName)
+	blobURL := containerURL.NewBlobURL(blobName)
+	_, err = blobURL.Delete(context.TODO(), azblob.DeleteSnapshotsOptionNone, azblob.BlobAccessConditions{})
+	if err != nil {
+		fmt.Printf("failed to delete blob %v\n", blobName)
+		fmt.Println(err)
+		return false
+	}
+	fmt.Printf("Successfully deleted blob %v\n", blobName)
+	return true
+}
