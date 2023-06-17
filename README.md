@@ -2,8 +2,8 @@
 
 The File Storage CLI Tool is a command-line interface that allows users to configure credentials and perform various operations such as downloading, uploading, listing, and deleting files in AWS S3 buckets or Microsoft Azure Blob Storage containers.
 
-- [For AWS S3](#for-aws-s3)
-- [For Microsoft Azure Blob Storage](#for-microsoft-azure-blob-storage)
+- [AWS S3](#for-aws-s3)
+- [Microsoft Azure Blob Storage](#for-microsoft-azure-blob-storage)
 ## Prerequisites
 
 - Go 1.16 or later
