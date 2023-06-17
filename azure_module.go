@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"path/filepath"
 
 	"github.com/Azure/azure-storage-blob-go/azblob"
 )
@@ -165,5 +166,40 @@ func deleteBlobFromContainer(containerName string, blobName string) bool {
 		return false
 	}
 	fmt.Printf("Successfully deleted blob %v\n", blobName)
+	return true
+}
+
+func getBlobFromContainer(containerName string, blobName string, filePath string) bool {
+	serviceURL, err := createServiceURL()
+	if err != nil {
+		fmt.Println("Failed to create service URL", err)
+		return false
+	}
+	containerURL := serviceURL.NewContainerURL(containerName)
+	blobURL := containerURL.NewBlobURL(blobName)
+
+	downloadResponse, err := blobURL.Download(context.Background(), 0, azblob.CountToEnd, azblob.BlobAccessConditions{}, false, azblob.ClientProvidedKeyOptions{})
+	if err != nil {
+		fmt.Printf("failed to initiate blob download: %v\n", err)
+		return false
+	}
+	defer downloadResponse.Response().Body.Close()
+	dirPath := filepath.Dir(filePath)
+	err = os.MkdirAll(dirPath, 0755)
+	if err != nil {
+		fmt.Println("Failed to create directory:", err)
+		return false
+	}
+	file, err := os.Create(filePath)
+	if err != nil {
+		fmt.Println("Failed to create file:", err)
+		return false
+	}
+	defer file.Close()
+	_, err = io.Copy(file, downloadResponse.Response().Body)
+	if err != nil {
+		fmt.Printf("failed to download blob: %v\n", err)
+		return false
+	}
 	return true
 }

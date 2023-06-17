@@ -109,8 +109,15 @@ func getHandler(args[]string) bool {
 	if strings.ToLower(args[2]) == "aws" {
 		if len(args) != 7 {
 			fmt.Println("USAGE: file-storage get aws <REGION> <BUCKET_NAME> <FILE_KEY> <FILE_PATH>")
+			return false
 		}
 		return getFileFromS3(args[3], args[4], args[5], args[6])
+	} else if strings.ToLower(args[2]) == "azure" {
+		if len(args) != 6 {
+			fmt.Println("Usage: file-storage get azure <CONTAINER_NAME> <BLOB_NAME> <FILE_PATH>")	
+			return false		
+		}
+		return getBlobFromContainer(args[3], args[4], args[5])
 	}
 	return false
 }
