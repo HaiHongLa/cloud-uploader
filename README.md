@@ -13,11 +13,11 @@ The File Storage CLI Tool is a command-line interface that allows users to confi
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/file-storage.git
+git clone https://github.com/HaiHongLa/cloud-uploader.git
 ```
 2. Navigate to the project directory:
 ```bash
-cd file-storage
+cd cloud-uploader
 ```
 3. Build the project:
 ```bash
