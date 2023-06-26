@@ -5,21 +5,50 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 	"path/filepath"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-
 )
+
+func configureAWSS3() bool {
+	fmt.Println("Enter Access Key: ")
+	var accessKey string
+	fmt.Scanln(&accessKey)
+	if len(accessKey) == 0 {
+		fmt.Println("Please enter your access key")
+		return false
+	}
+	fmt.Println("Enter Secret Access Key: ")
+	var secretAccessKey string
+	fmt.Scanln(&secretAccessKey)
+	if len(secretAccessKey) == 0 {
+		fmt.Println("Please enter your secret access key")
+		return false
+	}
+	err := os.MkdirAll("cloudConfig", os.ModePerm)
+	if err != nil {
+		fmt.Println("Error creating folder:", err)
+		return false
+	}
+	awsConfig := "AWS_ACCESS_KEY=" + accessKey + "\n" + "AWS_SECRET_ACCESS_KEY=" + secretAccessKey
+	err = ioutil.WriteFile("cloudConfig/AWSConfig", []byte(awsConfig), 0644)
+	if err != nil {
+		fmt.Println("Error creating file", err)
+		return false
+	}
+	fmt.Println("Configured AWS S3 successfully")
+	return true
+}
 
 func getAWSS3Session(region string) (*session.Session, error) {
 	configFile, err := os.Open("cloudConfig/AWSConfig")
 	if err != nil {
-		return nil, fmt.Errorf("AWS Configuration not found. Configure your AWS S3 credentials by running: file-storage configure aws. Error: %v", err)
+		return nil, fmt.Errorf("AWS configuration not found. Configure your AWS S3 credentials by running: file-storage configure aws. Error: %v", err)
 	}
 	defer configFile.Close()
 
@@ -58,39 +87,9 @@ func getAWSS3Client(region string) (*s3.S3, error) {
 	sess, err := getAWSS3Session(region)
 	if err != nil {
 		return nil, fmt.Errorf("Error creating AWS S3 session: %v", err)
-	} 
+	}
 	svc := s3.New(sess)
 	return svc, nil
-}
-
-func configureAWSS3() bool{
-	fmt.Println("Enter Access Key: ")
-	var accessKey string
-	fmt.Scanln(&accessKey)
-	if len(accessKey) == 0 {
-		fmt.Println("Please enter your access key")
-		return false
-	}
-	fmt.Println("Enter Secret Access Key: ")
-	var secretAccessKey string
-	fmt.Scanln(&secretAccessKey)
-	if len(secretAccessKey) == 0 {
-		fmt.Println("Please enter your secret access key")
-		return false
-	}
-	err := os.MkdirAll("cloudConfig", os.ModePerm)
-	if err != nil {
-		fmt.Println("Error creating folder:", err)
-		return false
-	}
-	awsConfig := "AWS_ACCESS_KEY=" + accessKey + "\n" + "AWS_SECRET_ACCESS_KEY=" + secretAccessKey
-	err = ioutil.WriteFile("cloudConfig/AWSConfig", []byte(awsConfig), 0644)
-	if err != nil {
-		fmt.Println("Error creating file", err)
-		return false
-	}
-	fmt.Println("Configured AWS S3 successfully")
-	return true
 }
 
 func uploadToAWSS3Bucket(region string, bucketName string, filePath string, fileKey string) bool {
@@ -108,8 +107,8 @@ func uploadToAWSS3Bucket(region string, bucketName string, filePath string, file
 
 	_, err = svc.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
-		Key: aws.String(fileKey),
-		Body: file,
+		Key:    aws.String(fileKey),
+		Body:   file,
 	})
 	if err != nil {
 		fmt.Println("Failed to upload file to S3", err)
@@ -165,7 +164,7 @@ func getFileFromS3(region string, bucketName string, fileKey string, filePath st
 	if err != nil {
 		fmt.Printf("Error creating AWS S3 session: %v\n", err)
 		return false
-	} 
+	}
 	downloader := s3manager.NewDownloader(sess)
 	dirPath := filepath.Dir(filePath)
 	err = os.MkdirAll(dirPath, 0755)

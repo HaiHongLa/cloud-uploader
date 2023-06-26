@@ -51,6 +51,8 @@ func configHandler(platform string) bool {
 		return configureAWSS3()
 	} else if strings.ToLower(platform) == "azure" {
 		return configureAzureBlobStorage()
+	} else if strings.ToLower(platform) == "gcp" {
+		return configureGCS()
 	}
 	return false
 }
@@ -68,6 +70,12 @@ func uploadHandler(args []string) bool {
 			return false
 		}
 		return uploadToAzureBlobStorage(args[3], args[4], args[5])
+	} else if strings.ToLower(args[2]) == "gcp" {
+		if len(args) != 6 {
+			fmt.Println("file-storage upload gcp <BUCKET_NAME> <FILE_PATH> <OBJECT_NAME>")
+			return false
+		}
+		return uploadToGCSBucket(args[3], args[4], args[5])
 	}
 	return false
 }

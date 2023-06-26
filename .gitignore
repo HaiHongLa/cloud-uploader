@@ -4,3 +4,4 @@ cloudConfig
 *.txt
 *.exe
 downloads
+*.json
